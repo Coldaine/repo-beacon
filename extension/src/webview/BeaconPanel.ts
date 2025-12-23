@@ -11,42 +11,48 @@ export class BeaconPanel {
   }
 
   public show(): void {
-    const repoName = this.getRepoName();
-    const config = this.getConfig();
+    try {
+      const repoName = this.getRepoName();
+      const config = this.getConfig();
 
-    if (this.panel) {
-      // Panel exists, just update and show
-      this.panel.webview.html = getWebviewContent(repoName, config);
-      this.panel.reveal(vscode.ViewColumn.One);
-    } else {
-      // Create new panel
-      this.panel = vscode.window.createWebviewPanel(
-        'repoBeacon',
-        'RepoBeacon',
-        {
-          viewColumn: vscode.ViewColumn.One,
-          preserveFocus: true,
-        },
-        {
-          enableScripts: true,
-          retainContextWhenHidden: false,
-        }
-      );
+      if (this.panel) {
+        // Panel exists, just update and show
+        this.panel.webview.html = getWebviewContent(repoName, config);
+        this.panel.reveal(vscode.ViewColumn.One);
+      } else {
+        // Create new panel
+        this.panel = vscode.window.createWebviewPanel(
+          'repoBeacon',
+          'RepoBeacon',
+          {
+            viewColumn: vscode.ViewColumn.One,
+            preserveFocus: true,
+          },
+          {
+            enableScripts: true,
+            retainContextWhenHidden: false,
+          }
+        );
 
-      this.panel.webview.html = getWebviewContent(repoName, config);
+        this.panel.webview.html = getWebviewContent(repoName, config);
 
-      // Handle panel disposal
-      this.panel.onDidDispose(() => {
-        this.panel = undefined;
-        if (this.dismissTimeout) {
-          clearTimeout(this.dismissTimeout);
-          this.dismissTimeout = undefined;
-        }
-      });
+        // Handle panel disposal
+        this.panel.onDidDispose(() => {
+          this.panel = undefined;
+          if (this.dismissTimeout) {
+            clearTimeout(this.dismissTimeout);
+            this.dismissTimeout = undefined;
+          }
+        });
+      }
+
+      // Auto-dismiss after duration
+      this.scheduleDismiss(config.duration);
+    } catch (error) {
+      // Log error but don't crash the extension
+      console.error('RepoBeacon: Failed to show panel', error);
+      vscode.window.showErrorMessage('RepoBeacon: Failed to display animation');
     }
-
-    // Auto-dismiss after duration
-    this.scheduleDismiss(config.duration);
   }
 
   private scheduleDismiss(duration: number): void {

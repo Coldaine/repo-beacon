@@ -3,9 +3,17 @@ import { BeaconPanel } from './webview/BeaconPanel';
 
 let beaconPanel: BeaconPanel | undefined;
 let timerInterval: NodeJS.Timeout | undefined;
+let outputChannel: vscode.LogOutputChannel;
+
+// Delay before initial show to ensure VS Code is fully loaded
+const INITIAL_SHOW_DELAY_MS = 1000;
 
 export function activate(context: vscode.ExtensionContext) {
-  console.log('RepoBeacon is now active');
+  // Create output channel for logging
+  outputChannel = vscode.window.createOutputChannel('RepoBeacon', { log: true });
+  context.subscriptions.push(outputChannel);
+  
+  outputChannel.info('RepoBeacon is now active');
 
   // Initialize the beacon panel manager
   beaconPanel = new BeaconPanel(context);
@@ -86,7 +94,8 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration((e) => {
       if (e.affectsConfiguration('repoBeacon.timerEnabled') ||
-          e.affectsConfiguration('repoBeacon.timerInterval')) {
+          e.affectsConfiguration('repoBeacon.timerInterval') ||
+          e.affectsConfiguration('repoBeacon.enabled')) {
         setupTimer();
       }
     })
@@ -97,7 +106,7 @@ export function activate(context: vscode.ExtensionContext) {
     // Small delay to ensure VS Code is fully loaded
     setTimeout(() => {
       beaconPanel?.show();
-    }, 1000);
+    }, INITIAL_SHOW_DELAY_MS);
   }
 }
 

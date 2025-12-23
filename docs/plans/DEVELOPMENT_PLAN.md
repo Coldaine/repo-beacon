@@ -182,10 +182,32 @@ repo-beacon/
 
 ---
 
+## Code Review Notes (Phase 1)
+
+Issues identified and fixed during code review:
+
+### Fixed ✓
+- **Added CSP header** — Webview now has Content-Security-Policy meta tag for security
+- **Added proper logging** — Replaced `console.log` with `LogOutputChannel` via `createOutputChannel`
+- **Fixed timer memory leak** — Config listener now also responds to `repoBeacon.enabled` changes
+- **Fixed entrance animation bug** — Position-specific transforms now used in keyframes (was hardcoded to center)
+- **Added hex color validation** — Custom colors now validate properly, support 3-char shorthand, fallback on invalid
+- **Added error handling** — `BeaconPanel.show()` wrapped in try-catch to prevent extension crashes
+- **Replaced magic number** — Initial show delay now uses named constant `INITIAL_SHOW_DELAY_MS`
+
+### Known Limitations (Document for Users)
+- **Webview opens in editor column** — Not a true overlay; takes over `ViewColumn.One`. Future: investigate overlay techniques or accept as current UX.
+- **Auto-detect not implemented** — `colorScheme: 'auto'` falls back to `backend` colors. Phase 2 will add project type detection.
+
+---
+
 ## Next Actions
 
-1. Create `phase1/feat/restructure` branch
-2. Move demo code to `/demo`
-3. Scaffold VS Code extension in `/extension`
-4. Get "Hello World" webview working
-5. Port Pulse animation as proof of concept
+1. ~~Create `phase1/feat/restructure` branch~~ ✓
+2. ~~Move demo code to `/demo`~~ ✓
+3. ~~Scaffold VS Code extension in `/extension`~~ ✓
+4. ~~Get "Hello World" webview working~~ ✓
+5. ~~Port Pulse animation as proof of concept~~ ✓
+6. **Test extension manually** (F5 launch)
+7. **Commit code review fixes**
+8. **Merge to master when ready**

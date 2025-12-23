@@ -11,11 +11,21 @@ const colorSchemes: Record<string, { primary: string; secondary: string; glow: s
 
 function getColors(config: BeaconConfig): { primary: string; secondary: string; glow: string } {
   if (config.colorScheme === 'custom') {
-    // Convert hex to RGB for glow
+    // Convert hex to RGB for glow, with validation
     const hex = config.customColor.replace('#', '');
-    const r = parseInt(hex.substring(0, 2), 16);
-    const g = parseInt(hex.substring(2, 4), 16);
-    const b = parseInt(hex.substring(4, 6), 16);
+    // Expand 3-char hex to 6-char (e.g., "fff" -> "ffffff")
+    const fullHex = hex.length === 3 
+      ? hex.split('').map(c => c + c).join('')
+      : hex;
+    
+    // Validate and parse, fallback to blue if invalid
+    if (!/^[0-9a-fA-F]{6}$/.test(fullHex)) {
+      return colorSchemes.backend; // Safe fallback
+    }
+    
+    const r = parseInt(fullHex.substring(0, 2), 16);
+    const g = parseInt(fullHex.substring(2, 4), 16);
+    const b = parseInt(fullHex.substring(4, 6), 16);
     return {
       primary: config.customColor,
       secondary: config.customColor,
@@ -23,23 +33,44 @@ function getColors(config: BeaconConfig): { primary: string; secondary: string; 
     };
   }
   
-  // Default to backend colors for 'auto' (we can make this smarter later)
+  // Default to backend colors for 'auto' 
+  // TODO: Phase 2 - detect project type from package.json, requirements.txt, etc.
   return colorSchemes[config.colorScheme] || colorSchemes.backend;
 }
 
-function getPositionStyles(position: string): string {
+function getPositionStyles(position: string): { position: string; entranceFrom: string; entranceTo: string } {
   switch (position) {
     case 'top-left':
-      return 'top: 20%; left: 20%; transform: translate(-50%, -50%);';
+      return {
+        position: 'top: 20%; left: 20%; transform: translate(-50%, -50%);',
+        entranceFrom: 'transform: translate(-50%, -50%) scale(0.8);',
+        entranceTo: 'transform: translate(-50%, -50%) scale(1);',
+      };
     case 'top-right':
-      return 'top: 20%; right: 20%; transform: translate(50%, -50%);';
+      return {
+        position: 'top: 20%; right: 20%; transform: translate(50%, -50%);',
+        entranceFrom: 'transform: translate(50%, -50%) scale(0.8);',
+        entranceTo: 'transform: translate(50%, -50%) scale(1);',
+      };
     case 'bottom-left':
-      return 'bottom: 20%; left: 20%; transform: translate(-50%, 50%);';
+      return {
+        position: 'bottom: 20%; left: 20%; transform: translate(-50%, 50%);',
+        entranceFrom: 'transform: translate(-50%, 50%) scale(0.8);',
+        entranceTo: 'transform: translate(-50%, 50%) scale(1);',
+      };
     case 'bottom-right':
-      return 'bottom: 20%; right: 20%; transform: translate(50%, 50%);';
+      return {
+        position: 'bottom: 20%; right: 20%; transform: translate(50%, 50%);',
+        entranceFrom: 'transform: translate(50%, 50%) scale(0.8);',
+        entranceTo: 'transform: translate(50%, 50%) scale(1);',
+      };
     case 'center':
     default:
-      return 'top: 50%; left: 50%; transform: translate(-50%, -50%);';
+      return {
+        position: 'top: 50%; left: 50%; transform: translate(-50%, -50%);',
+        entranceFrom: 'transform: translate(-50%, -50%) scale(0.8);',
+        entranceTo: 'transform: translate(-50%, -50%) scale(1);',
+      };
   }
 }
 
@@ -108,6 +139,7 @@ export function getWebviewContent(repoName: string, config: BeaconConfig): strin
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline';">
   <title>RepoBeacon</title>
   <style>
     * {
@@ -129,7 +161,7 @@ export function getWebviewContent(repoName: string, config: BeaconConfig): strin
     
     .beacon-container {
       position: fixed;
-      ${positionStyles}
+      ${positionStyles.position}
       z-index: 9999;
       pointer-events: none;
     }
@@ -157,11 +189,11 @@ export function getWebviewContent(repoName: string, config: BeaconConfig): strin
     @keyframes entrance {
       from {
         opacity: 0;
-        transform: translate(-50%, -50%) scale(0.8);
+        ${positionStyles.entranceFrom}
       }
       to {
         opacity: 1;
-        transform: translate(-50%, -50%) scale(1);
+        ${positionStyles.entranceTo}
       }
     }
   </style>
