@@ -1,0 +1,136 @@
+{
+  "name": "repo-beacon",
+  "displayName": "RepoBeacon",
+  "description": "Prominently display repository names with animated visual styles. Peacock for people who need more.",
+  "version": "0.1.0",
+  "publisher": "coldaine",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other",
+    "Visualization"
+  ],
+  "keywords": [
+    "repository",
+    "window",
+    "identifier",
+    "animation",
+    "peacock"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "repoBeacon.toggle",
+        "title": "RepoBeacon: Toggle Enabled"
+      },
+      {
+        "command": "repoBeacon.showNow",
+        "title": "RepoBeacon: Show Now"
+      },
+      {
+        "command": "repoBeacon.changeStyle",
+        "title": "RepoBeacon: Change Animation Style"
+      },
+      {
+        "command": "repoBeacon.changeColorScheme",
+        "title": "RepoBeacon: Change Color Scheme"
+      }
+    ],
+    "configuration": {
+      "title": "RepoBeacon",
+      "properties": {
+        "repoBeacon.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable or disable RepoBeacon"
+        },
+        "repoBeacon.style": {
+          "type": "string",
+          "default": "pulse",
+          "enum": ["pulse", "shimmer", "fade"],
+          "enumDescriptions": [
+            "Breathing/pulsing glow effect",
+            "Shiny sweep effect",
+            "Fade in/out cycle"
+          ],
+          "description": "Animation style for the repo name display"
+        },
+        "repoBeacon.colorScheme": {
+          "type": "string",
+          "default": "auto",
+          "enum": ["auto", "frontend", "backend", "data", "devops", "mobile", "custom"],
+          "description": "Color scheme for the animation"
+        },
+        "repoBeacon.customColor": {
+          "type": "string",
+          "default": "#3b82f6",
+          "description": "Custom primary color (hex) when colorScheme is 'custom'"
+        },
+        "repoBeacon.position": {
+          "type": "string",
+          "default": "center",
+          "enum": ["center", "top-right", "top-left", "bottom-right", "bottom-left"],
+          "description": "Position of the animation overlay"
+        },
+        "repoBeacon.opacity": {
+          "type": "number",
+          "default": 0.9,
+          "minimum": 0.1,
+          "maximum": 1.0,
+          "description": "Opacity of the animation overlay"
+        },
+        "repoBeacon.duration": {
+          "type": "number",
+          "default": 3000,
+          "minimum": 1000,
+          "maximum": 10000,
+          "description": "How long the animation displays (milliseconds)"
+        },
+        "repoBeacon.triggerOnFocus": {
+          "type": "boolean",
+          "default": true,
+          "description": "Trigger animation when window gains focus"
+        },
+        "repoBeacon.timerEnabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable periodic timer-based animation"
+        },
+        "repoBeacon.timerInterval": {
+          "type": "number",
+          "default": 30000,
+          "minimum": 5000,
+          "description": "Interval between timer-triggered animations (milliseconds)"
+        },
+        "repoBeacon.fontSize": {
+          "type": "string",
+          "default": "2rem",
+          "description": "Font size of the repo name"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "eslint": "^8.54.0",
+    "typescript": "^5.3.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Coldaine/repo-beacon"
+  }
+}

@@ -29,35 +29,35 @@ We have a working **web demo** showcasing:
 **Objective:** A VS Code extension that displays an animated repo name badge in a webview.
 
 ### 1.1 Project Restructure
-- [ ] Create `/extension` folder for VS Code extension source
-- [ ] Move demo to `/demo` folder (preserve as reference)
-- [ ] Initialize extension with proper `package.json` manifest
-- [ ] Set up TypeScript build pipeline for extension
-- [ ] Configure debugging (launch.json for Extension Host)
+- [x] Create `/extension` folder for VS Code extension source
+- [x] Move demo to `/demo` folder (preserve as reference)
+- [x] Initialize extension with proper `package.json` manifest
+- [x] Set up TypeScript build pipeline for extension
+- [x] Configure debugging (launch.json for Extension Host)
 
 ### 1.2 Core Extension Infrastructure
-- [ ] Create `extension.ts` with activation logic
-- [ ] Implement webview panel creation (full-window overlay)
-- [ ] Read workspace folder name via VS Code API
-- [ ] Basic settings schema in `package.json`
-- [ ] **Window focus detection** — trigger animation on window activate
-- [ ] Timer-based trigger option (e.g., every 30 seconds)
-- [ ] Auto-dismiss after animation completes
+- [x] Create `extension.ts` with activation logic
+- [x] Implement webview panel creation (full-window overlay)
+- [x] Read workspace folder name via VS Code API
+- [x] Basic settings schema in `package.json`
+- [x] **Window focus detection** — trigger animation on window activate
+- [x] Timer-based trigger option (e.g., every 30 seconds)
+- [x] Auto-dismiss after animation completes
 
 ### 1.3 First Animations (Webview)
-- [ ] Port Pulse animation to vanilla CSS/JS
-- [ ] Port Shimmer animation
-- [ ] Port Fade animation
-- [ ] Create webview HTML template with animation switcher
-- [ ] Wire settings to webview (style, color scheme)
+- [x] Port Pulse animation to vanilla CSS/JS
+- [x] Port Shimmer animation
+- [x] Port Fade animation
+- [x] Create webview HTML template with animation switcher
+- [x] Wire settings to webview (style, color scheme)
 
 ### 1.4 Commands & Configuration
-- [ ] Command: "RepoBeacon: Toggle Enabled"
-- [ ] Command: "RepoBeacon: Change Style"
-- [ ] Command: "RepoBeacon: Change Color Scheme"
-- [ ] Command: "RepoBeacon: Show Now" (manual trigger)
-- [ ] Per-workspace settings support
-- [ ] Settings: position, opacity, size, animation speed, trigger mode, timer interval
+- [x] Command: "RepoBeacon: Toggle Enabled"
+- [x] Command: "RepoBeacon: Change Style"
+- [x] Command: "RepoBeacon: Change Color Scheme"
+- [x] Command: "RepoBeacon: Show Now" (manual trigger)
+- [x] Per-workspace settings support
+- [x] Settings: position, opacity, size, animation speed, trigger mode, timer interval
 
 ### 1.5 Phase 1 Deliverable
 - Extension activates on workspace open
