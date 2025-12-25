@@ -1,0 +1,20 @@
+#animated-text.animation-pulse {
+    animation: pulse 1.5s ease-in-out infinite;
+    text-shadow: 0 0 20px rgba(59, 130, 246, 1), 0 0 35px rgba(59, 130, 246, 0.6);
+    border: 2px solid rgba(59, 130, 246, 0.5);
+    background-color: rgba(17, 24, 39, 0.4);
+    backdrop-filter: blur(4px);
+    border-radius: 0.75rem;
+    padding: 0.75rem 1.25rem;
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 0.6;
+    }
+    50% {
+      transform: scale(1.05);
+      opacity: 1;
+    }
+  }
