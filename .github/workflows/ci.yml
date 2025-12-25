@@ -1,0 +1,69 @@
+# .github/workflows/ci.yml
+name: RepoBeacon CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  release:
+    types: [ created ]
+
+jobs:
+  pr_check:
+    name: "PR Check"
+    if: github.event_name == 'pull_request'
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
+        run: npm install
+
+      # - name: Lint Extension
+      #   run: echo "Linting extension..."
+
+      # - name: Compile Extension
+      #   run: echo "Compiling extension..."
+
+      - name: Run IPC Test Harness
+        run: npx ts-node scripts/test-ipc.ts
+
+      - name: Compile Overlay (Windows)
+        run: ./scripts/build-overlay.sh
+
+  release_build:
+    name: "Release Build"
+    if: github.event_name == 'release'
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Build Overlay
+        run: ./scripts/build-overlay.sh
+
+      - name: Bundle Extension
+        run: ./scripts/bundle-extension.sh
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: repobeacon-vsix-${{ matrix.os }}
+          path: extension/*.vsix
