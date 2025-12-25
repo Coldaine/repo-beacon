@@ -52,14 +52,41 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 function getOverlayBinaryPath(extensionPath: string): string | null {
-    // For development, we'll use a mock Node.js script.
-    // In a real build, this would point to the compiled Tauri binary.
-    const mockScriptPath = path.join(extensionPath, 'bin', 'mock-overlay.js');
+    // Simple flag to switch between mock script and production binary for development.
+    // In a real build process, this would be replaced or handled by environment variables.
+    const isDev = true;
 
-    // To run the script, we need to spawn 'node' with the script as an argument.
-    // The OverlayManager will handle this. We return the path to the script itself.
-    outputChannel.info(`Using mock overlay script at: ${mockScriptPath}`);
-    return mockScriptPath;
+    if (isDev) {
+        const mockScriptPath = path.join(extensionPath, 'bin', 'mock-overlay.js');
+        outputChannel.info(`DEV MODE: Using mock overlay script at: ${mockScriptPath}`);
+        return mockScriptPath;
+    }
+
+    // Production binary path logic
+    const platform = os.platform();
+    const arch = os.arch();
+    let binaryName: string;
+
+    switch (platform) {
+        case 'win32':
+            binaryName = `overlay-win32-${arch}.exe`;
+            break;
+        case 'darwin':
+            binaryName = `overlay-darwin-${arch}`;
+            break;
+        case 'linux':
+            binaryName = `overlay-linux-${arch}`;
+            break;
+        default:
+            outputChannel.error(`Unsupported platform for RepoBeacon overlay: ${platform}`);
+            vscode.window.showErrorMessage(`RepoBeacon is not supported on your platform (${platform}).`);
+            return null;
+    }
+
+    const binaryPath = path.join(extensionPath, 'bin', binaryName);
+    outputChannel.info(`Using production overlay binary at: ${binaryPath}`);
+    // Future enhancement: Check if the file exists before returning.
+    return binaryPath;
 }
 
 

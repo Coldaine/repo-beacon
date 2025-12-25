@@ -41,8 +41,18 @@ export class OverlayManager {
     }
 
     try {
-      const command = 'node';
-      const args = [this.overlayBinaryPath];
+      let command: string;
+      let args: string[];
+
+      // If the path is a .js file, we assume it's the mock script and run it with Node.
+      // Otherwise, we execute the binary directly.
+      if (this.overlayBinaryPath.endsWith('.js')) {
+        command = 'node';
+        args = [this.overlayBinaryPath];
+      } else {
+        command = this.overlayBinaryPath;
+        args = [];
+      }
 
       this.outputChannel.info(`Spawning overlay process: ${command} ${args.join(' ')}`);
       this.process = spawn(command, args, {
