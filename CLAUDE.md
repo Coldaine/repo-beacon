@@ -21,14 +21,18 @@ Before starting any work, read these documents:
 ## Commands
 
 ```bash
-# Demo (current)
-npm i          # Install dependencies
-npm run dev    # Start dev server (opens http://localhost:3000)
-npm run build  # Production build to ./build
+# Extension development
+cd extension
+npm i              # Install dependencies
+npm run compile    # Build once
+npm run watch      # Build and watch for changes
 
-# Extension (after Phase 1.1 restructure)
-# cd extension && npm i && npm run compile
-# F5 in VS Code to launch Extension Host
+# Launch extension: Press F5 in VS Code (uses .vscode/launch.json)
+
+# Demo (reference only)
+cd demo
+npm i
+npm run dev
 ```
 
 ## Architecture
@@ -63,22 +67,6 @@ repo-beacon/
 └── AGENTS.md
 ```
 
-### Demo Structure (Current, Pre-Restructure)
-```
-src/
-├── App.tsx                      # Main demo application
-├── components/
-│   ├── VSCodeWindow.tsx         # Window container, renders animations
-│   ├── animations/              # 15 animation components
-│   │   ├── DVDBounce.tsx
-│   │   ├── Pulse.tsx
-│   │   ├── Shimmer.tsx
-│   │   └── ... (12 more)
-│   └── ui/                      # shadcn/ui (do not modify)
-└── types/
-    └── ColorScheme.ts           # Color scheme definitions
-```
-
 ### Animation Component Interface
 All animations in `src/components/animations/` implement:
 ```typescript
@@ -99,7 +87,6 @@ Defined in `src/types/ColorScheme.ts`:
 | data | Green/Teal | Data pipelines |
 | devops | Cyan/Gray | Infrastructure |
 | mobile | Pink | iOS, Android |
-| testing | Yellow | Test suites |
 
 ## Path Alias
 
@@ -140,11 +127,11 @@ Examples:
 
 ### Starting New Work
 1. Check `docs/plans/DEVELOPMENT_PLAN.md` for current phase
-2. Create branch from main
+2. Create branch from master
 3. Implement, commit frequently
 4. Test: `npm run dev` and `npm run build`
 5. Update docs if needed (DEVELOPMENT_PLAN checkboxes, etc.)
-6. Merge to main
+6. Merge to master
 
 ### Updating Documentation
 - Task done → check box in DEVELOPMENT_PLAN.md
