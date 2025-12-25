@@ -1,146 +1,70 @@
 import * as vscode from 'vscode';
-import { BeaconPanel } from './webview/BeaconPanel';
+import * as path from 'path';
+import * as os from 'os';
+import { OverlayManager } from './overlay/manager';
+import { getRepoBeaconSettings, isEnabled } from './config/settings';
+import { registerCommands } from './commands';
 
-let beaconPanel: BeaconPanel | undefined;
-let timerInterval: NodeJS.Timeout | undefined;
+let overlayManager: OverlayManager | undefined;
 let outputChannel: vscode.LogOutputChannel;
 
-// Delay before initial show to ensure VS Code is fully loaded
-const INITIAL_SHOW_DELAY_MS = 1000;
-
 export function activate(context: vscode.ExtensionContext) {
-  // Create output channel for logging
+  // Create a log output channel for debugging
   outputChannel = vscode.window.createOutputChannel('RepoBeacon', { log: true });
   context.subscriptions.push(outputChannel);
-  
-  outputChannel.info('RepoBeacon is now active');
+  outputChannel.info('RepoBeacon is activating...');
 
-  // Initialize the beacon panel manager
-  beaconPanel = new BeaconPanel(context);
+  // Determine the path to the overlay binary
+  const binaryPath = getOverlayBinaryPath(context.extensionPath);
+
+  if (!binaryPath) {
+    vscode.window.showErrorMessage('RepoBeacon overlay binary not found for this platform.');
+    outputChannel.error('Overlay binary not found.');
+    return;
+  }
+
+  // Initialize and start the overlay manager
+  overlayManager = new OverlayManager(binaryPath, outputChannel);
+  overlayManager.start();
+  context.subscriptions.push({ dispose: () => overlayManager?.stop() });
 
   // Register commands
-  context.subscriptions.push(
-    vscode.commands.registerCommand('repoBeacon.toggle', () => {
-      const config = vscode.workspace.getConfiguration('repoBeacon');
-      const currentValue = config.get<boolean>('enabled', true);
-      config.update('enabled', !currentValue, vscode.ConfigurationTarget.Global);
-      vscode.window.showInformationMessage(
-        `RepoBeacon ${!currentValue ? 'enabled' : 'disabled'}`
-      );
-    }),
+  registerCommands(context, overlayManager, outputChannel);
 
-    vscode.commands.registerCommand('repoBeacon.showNow', () => {
-      if (isEnabled()) {
-        beaconPanel?.show();
-      } else {
-        vscode.window.showWarningMessage('RepoBeacon is disabled. Enable it first.');
-      }
-    }),
-
-    vscode.commands.registerCommand('repoBeacon.changeStyle', async () => {
-      const styles = [
-        { label: 'Pulse', description: 'Breathing/pulsing glow effect', value: 'pulse' },
-        { label: 'Shimmer', description: 'Shiny sweep effect', value: 'shimmer' },
-        { label: 'Fade', description: 'Fade in/out cycle', value: 'fade' },
-      ];
-      
-      const selected = await vscode.window.showQuickPick(styles, {
-        placeHolder: 'Select animation style',
-      });
-      
-      if (selected) {
-        const config = vscode.workspace.getConfiguration('repoBeacon');
-        await config.update('style', selected.value, vscode.ConfigurationTarget.Global);
-        vscode.window.showInformationMessage(`Animation style set to ${selected.label}`);
-      }
-    }),
-
-    vscode.commands.registerCommand('repoBeacon.changeColorScheme', async () => {
-      const schemes = [
-        { label: 'Auto', description: 'Detect from project type', value: 'auto' },
-        { label: 'Frontend', description: 'Orange/Red (warm)', value: 'frontend' },
-        { label: 'Backend', description: 'Blue/Purple (cool)', value: 'backend' },
-        { label: 'Data', description: 'Green/Teal', value: 'data' },
-        { label: 'DevOps', description: 'Cyan/Gray', value: 'devops' },
-        { label: 'Mobile', description: 'Pink/Magenta', value: 'mobile' },
-        { label: 'Custom', description: 'Use custom color', value: 'custom' },
-      ];
-      
-      const selected = await vscode.window.showQuickPick(schemes, {
-        placeHolder: 'Select color scheme',
-      });
-      
-      if (selected) {
-        const config = vscode.workspace.getConfiguration('repoBeacon');
-        await config.update('colorScheme', selected.value, vscode.ConfigurationTarget.Global);
-        vscode.window.showInformationMessage(`Color scheme set to ${selected.label}`);
-      }
-    })
-  );
-
-  // Window focus detection
+  // Listen for window focus changes
   context.subscriptions.push(
     vscode.window.onDidChangeWindowState((state) => {
-      if (state.focused && isEnabled() && isTriggerOnFocusEnabled()) {
-        beaconPanel?.show();
+      if (state.focused && isEnabled()) {
+        outputChannel.info('Window focused, triggering show command.');
+        vscode.commands.executeCommand('repoBeacon.showNow');
       }
     })
   );
 
-  // Timer-based trigger
-  setupTimer();
-
-  // Listen for configuration changes
-  context.subscriptions.push(
-    vscode.workspace.onDidChangeConfiguration((e) => {
-      if (e.affectsConfiguration('repoBeacon.timerEnabled') ||
-          e.affectsConfiguration('repoBeacon.timerInterval') ||
-          e.affectsConfiguration('repoBeacon.enabled')) {
-        setupTimer();
-      }
-    })
-  );
-
-  // Show on initial activation if configured
-  if (isEnabled() && isTriggerOnFocusEnabled()) {
-    // Small delay to ensure VS Code is fully loaded
-    setTimeout(() => {
-      beaconPanel?.show();
-    }, INITIAL_SHOW_DELAY_MS);
-  }
-}
-
-function isEnabled(): boolean {
-  return vscode.workspace.getConfiguration('repoBeacon').get<boolean>('enabled', true);
-}
-
-function isTriggerOnFocusEnabled(): boolean {
-  return vscode.workspace.getConfiguration('repoBeacon').get<boolean>('triggerOnFocus', true);
-}
-
-function setupTimer(): void {
-  // Clear existing timer
-  if (timerInterval) {
-    clearInterval(timerInterval);
-    timerInterval = undefined;
+  // Initial trigger on startup if a workspace is open
+  if (vscode.window.state.focused && isEnabled()) {
+    outputChannel.info('Initial activation, triggering show command.');
+     // Use a small delay to ensure the overlay has time to initialize
+    setTimeout(() => vscode.commands.executeCommand('repoBeacon.showNow'), 500);
   }
 
-  const config = vscode.workspace.getConfiguration('repoBeacon');
-  const timerEnabled = config.get<boolean>('timerEnabled', false);
-  const interval = config.get<number>('timerInterval', 30000);
-
-  if (timerEnabled && isEnabled()) {
-    timerInterval = setInterval(() => {
-      if (isEnabled()) {
-        beaconPanel?.show();
-      }
-    }, interval);
-  }
+  outputChannel.info('RepoBeacon activated successfully.');
 }
+
+function getOverlayBinaryPath(extensionPath: string): string | null {
+    // For development, we'll use a mock Node.js script.
+    // In a real build, this would point to the compiled Tauri binary.
+    const mockScriptPath = path.join(extensionPath, 'bin', 'mock-overlay.js');
+
+    // To run the script, we need to spawn 'node' with the script as an argument.
+    // The OverlayManager will handle this. We return the path to the script itself.
+    outputChannel.info(`Using mock overlay script at: ${mockScriptPath}`);
+    return mockScriptPath;
+}
+
 
 export function deactivate() {
-  if (timerInterval) {
-    clearInterval(timerInterval);
-  }
-  beaconPanel?.dispose();
+  outputChannel.info('RepoBeacon deactivating...');
+  overlayManager?.stop();
+  outputChannel.info('RepoBeacon deactivated.');
 }
